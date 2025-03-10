@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Memos</h1>
+        
+        <form class="memo-form" action="{{ url_for('add_memo') }}" method="POST">
+            <div class="input-layout">
+                <div class="memo-input-container">
+                    <textarea 
+                        name="content" 
+                        placeholder="" 
+                        required
+                        maxlength="500"
+                        id="memo-input"></textarea>
+                    <label class="input-label" for="memo-input">Write your thoughts...</label>
+                    <div class="input-backdrop"></div>
+                    <div class="character-count">0 / 500</div>
+                </div>
+                
+                <div class="color-selection">
+                    <span class="color-label">Theme</span>
+                    <div class="color-options">
+                        <label class="color-option">
+                            <input type="radio" name="color" value="gradient-1" checked>
+                            <span class="color-preview gradient-1" data-tooltip="Sunset"></span>
+                        </label>
+                        <label class="color-option">
+                            <input type="radio" name="color" value="gradient-2">
+                            <span class="color-preview gradient-2" data-tooltip="Ocean"></span>
+                        </label>
+                        <label class="color-option">
+                            <input type="radio" name="color" value="gradient-3">
+                            <span class="color-preview gradient-3" data-tooltip="Forest"></span>
+                        </label>
+                        <label class="color-option">
+                            <input type="radio" name="color" value="gradient-4">
+                            <span class="color-preview gradient-4" data-tooltip="Lavender"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit">Add Memo</button>
+        </form>
+
+        <div class="memos-grid">
+            {% for memo in memos %}
+            <div class="memo {{ memo.color }}" data-id="{{ memo.id }}">
+                <p>{{ memo.content }}</p>
+                <div class="memo-footer">
+                    <span class="date">{{ memo.created_at.strftime('%B %d, %Y') }}</span>
+                    <button class="delete-btn" onclick="deleteMemo({{ memo.id }})">
+                        Delete
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const textarea = document.querySelector('#memo-input');
+        const charCount = document.querySelector('.character-count');
+
+        textarea.addEventListener('input', function() {
+            const length = this.value.length;
+            charCount.textContent = `${length} / 500`;
+            
+            gsap.to(textarea, {
+                scale: 1.002,
+                duration: 0.1,
+                yoyo: true,
+                repeat: 1
+            });
+        });
+
+        function deleteMemo(id) {
+            const memo = document.querySelector(`.memo[data-id="${id}"]`);
+            
+            gsap.to(memo, {
+                scale: 0,
+                opacity: 0,
+                duration: 0.3,
+                onComplete: () => {
+                    fetch(`/delete_memo/${id}`, { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                memo.remove();
+                            }
+                        });
+                }
+            });
+        }
+
+        // Animate memos on page load
+        window.addEventListener('load', () => {
+            gsap.from('.memo', {
+                duration: 0.5,
+                scale: 0.8,
+                opacity: 0,
+                stagger: 0.1,
+                ease: 'back.out(1.7)'
+            });
+        });
+
+        // Form hover animations
+        document.querySelector('.memo-form').addEventListener('mouseenter', () => {
+            gsap.to('.memo-form', {
+                duration: 0.3,
+                scale: 1.01,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                ease: 'power2.out'
+            });
+        });
+
+        document.querySelector('.memo-form').addEventListener('mouseleave', () => {
+            gsap.to('.memo-form', {
+                duration: 0.3,
+                scale: 1,
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+                ease: 'power2.out'
+            });
+        });
+    </script>
+</body>
+</html>
