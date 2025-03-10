@@ -1,5 +1,5 @@
 
-Memo 
+# Memo 
 
 A simple and elegant note-taking web application built with **Flask** (Python) and **SQLite** for the backend, and **HTML/CSS/JavaScript** for the frontend. This app allows users to create, view, and delete memos with customizable color themes.
 
